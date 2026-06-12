@@ -1,0 +1,126 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function userExists() {
+      return signedIn() && exists(userPath(request.auth.uid));
+    }
+
+    function currentUser() {
+      return get(userPath(request.auth.uid)).data;
+    }
+
+    function currentRole() {
+      return userExists() ? currentUser().role : null;
+    }
+
+    function isPrincipal() {
+      return currentRole() == 'principal';
+    }
+
+    function isStaff() {
+      return currentRole() in ['teacher', 'vice_principal', 'principal'];
+    }
+
+    function isKnownRole(role) {
+      return role in ['student', 'teacher', 'vice_principal', 'principal'];
+    }
+
+    function isMyUserDoc(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function canReadReport(reportData) {
+      return signedIn()
+        && (
+          isPrincipal()
+          || reportData.reporterUid == request.auth.uid
+          || (isStaff() && reportData.targetRole == currentRole())
+        );
+    }
+
+    function canAccessAppointment(appointmentData) {
+      return signedIn()
+        && (
+          isPrincipal()
+          || appointmentData.studentUid == request.auth.uid
+          || appointmentData.initiatorUid == request.auth.uid
+        );
+    }
+
+    function canAccessReportConversation(reportId) {
+      return exists(/databases/$(database)/documents/reports/$(reportId))
+        && canReadReport(get(/databases/$(database)/documents/reports/$(reportId)).data);
+    }
+
+    match /users/{userId} {
+      allow get: if signedIn() && (isMyUserDoc(userId) || isStaff());
+      allow list: if signedIn() && isStaff();
+
+      allow create: if signedIn()
+        && request.resource.data.uid == userId
+        && isKnownRole(request.resource.data.role)
+        && (
+          (isMyUserDoc(userId) && request.resource.data.role == 'student')
+          || isPrincipal()
+        );
+
+      allow update: if signedIn()
+        && request.resource.data.uid == userId
+        && isKnownRole(request.resource.data.role)
+        && (isPrincipal() || isMyUserDoc(userId));
+
+      allow delete: if isPrincipal();
+    }
+
+    match /reports/{reportId} {
+      allow get, list: if canReadReport(resource.data);
+
+      allow create: if signedIn()
+        && userExists()
+        && currentRole() == 'student'
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.targetRole in ['teacher', 'vice_principal', 'principal'];
+
+      allow update: if signedIn()
+        && (
+          isPrincipal()
+          || (isStaff() && resource.data.targetRole == currentRole())
+          || resource.data.reporterUid == request.auth.uid
+        );
+
+      allow delete: if isPrincipal();
+    }
+
+    match /conversations/{messageId} {
+      allow get, list: if signedIn() && canAccessReportConversation(resource.data.reportId);
+
+      allow create: if signedIn()
+        && request.resource.data.senderUid == request.auth.uid
+        && canAccessReportConversation(request.resource.data.reportId);
+
+      allow update, delete: if isPrincipal();
+    }
+
+    match /appointments/{appointmentId} {
+      allow get, list: if canAccessAppointment(resource.data);
+
+      allow create: if signedIn()
+        && isStaff()
+        && request.resource.data.initiatorUid == request.auth.uid
+        && request.resource.data.initiatorRole == currentRole();
+
+      allow update: if signedIn() && canAccessAppointment(resource.data);
+
+      allow delete: if isPrincipal();
+    }
+  }
+}
