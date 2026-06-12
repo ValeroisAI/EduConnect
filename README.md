@@ -1,7 +1,8 @@
 
 ```markdown
 # Valerois EduConnect 🏫💬
-
+!WARNING!
+SOME FILES ARENT AVAIBLE RIGHT NOW. THIS REPO DOES NOT HAS HAVE ALL FILES!
 **Valerois EduConnect** is a Firebase-based school communication platform that lets students and teachers talk **without sharing phone numbers**, submit complaints, and manage appointments – all under full principal oversight.
 
 TCKN (Turkish Republic Identification Number) registration prevents troll accounts and ensures users are real individuals within the school ecosystem.
