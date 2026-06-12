@@ -102,29 +102,3 @@ Company: **Valerois**
 ---
 
 **⭐ Star this repo if you find it useful!**
-```
-
----
-
-## 4. LICENSE (öncekiyle aynı türde, ek kısıtlamalı)
-
-
-Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International
-==========================================================================
-
-Copyright (c) 2026 Berkay Şahin
-
-This work is licensed under the Creative Commons Attribution-NonCommercial-
-NoDerivatives 4.0 International License.
-
-To view a copy of this license, visit:
-http://creativecommons.org/licenses/by-nc-nd/4.0/
-
-Additional Restrictions (as permitted by Section 2(a)(5) of the license):
-- YOU MAY NOT use this work commercially.
-- YOU MAY NOT modify and distribute this work.
-- YOU MAY NOT use this work for training artificial intelligence models.
-- YOU MAY NOT include this work in any product or service.
-
-Full legal code: https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-```
